@@ -1,0 +1,20 @@
+{
+  "name": "rc-start-sam-viewer",
+  "version": "1.0.0",
+  "description": "A tool for visualizing SAM files. Filter reads by flags, see a heat map of match quality, and show overall alignment. Made during the RC Start program.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonywang124/RC-Start-SAM-viewer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tonywang124/RC-Start-SAM-viewer/issues"
+  },
+  "homepage": "https://github.com/tonywang124/RC-Start-SAM-viewer#readme"
+}
