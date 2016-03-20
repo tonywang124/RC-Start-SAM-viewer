@@ -1,9 +1,14 @@
-var http = require("http");
-var fs = require('fs');
+// var http = require("http");
+// var fs = require('fs');
 
-var server = http.createServer(function (req, res) {
-	res.writeHead(200, { 'content-type': 'text/html'})
-	fs.createReadStream("index.html").pipe(res)
-})
+var path = require('path');
+var express = require('express');
 
-server.listen(8000);
+var app = express();
+
+
+app.use(express.static('public'));
+
+app.listen(8000, function() {
+  console.log('listening');
+});

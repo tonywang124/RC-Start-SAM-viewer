@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/tonywang124/RC-Start-SAM-viewer/issues"
   },
-  "homepage": "https://github.com/tonywang124/RC-Start-SAM-viewer#readme"
+  "homepage": "https://github.com/tonywang124/RC-Start-SAM-viewer#readme",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
 }
