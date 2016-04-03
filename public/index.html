@@ -5,71 +5,47 @@
 		<meta charset="utf-8"> <!-- Required for d3 to parse data and functions. -->
 		<title>SAM Viewer</title>
 		<script type="text/javascript" src = "d3/d3.js"></script>
-		<style>
-			.axis path,
-			.axis line {
-				fill: none;
-				stroke: black;
-				shape-rendering: crispEdges;
-			}
-			.axis text {
-				font-family: sans-serif;
-				font-size: 11px;
-			}
-		</style>
+		<link rel="stylesheet" type="text/css" href="styles.css">
 	</head>
 	<body>
-		<button id="add">Add Random Element</button>
-		<button id="remove">Remove Element</button>
-		<script type="text/javascript">
-
-			var sampleData = [ { key: 0, value: 5 },
-                { key: 1, value: 10 },
-                { key: 2, value: 13 },
-                { key: 3, value: 19 },
-                { key: 4, value: 21 },
-                { key: 5, value: 25 },
-                { key: 6, value: 22 },
-                { key: 7, value: 18 },
-                { key: 8, value: 15 },
-                { key: 9, value: 13 },
-                { key: 10, value: 11 },
-                { key: 11, value: 12 },
-                { key: 12, value: 15 },
-                { key: 13, value: 20 },
-                { key: 14, value: 18 },
-                { key: 15, value: 17 },
-                { key: 16, value: 16 },
-                { key: 17, value: 18 },
-                { key: 18, value: 23 },
-                { key: 19, value: 25 } ];
-			//Retrieve key of Array entry
-			var key = function(d) {
-				return d.key;
-			};
-			var width = 600;
-			var height = 250;
-			var barPadding = 1;
-			var xScale = d3.scale.ordinal()
-						   .domain(d3.range(sampleData.length)) // Gives each value an ID (key) from 0 to lenght of sampleData (same as index of the array)
-						   .rangeRoundBands([0, width], 0.05); /* Bands are discrete divisions that are automatically calculated: (delta range) / domain.length 
-						   Round rounds to nearest whole pixel for cleaner edges. Second input 
-						   is for spacing percentage between bands. */
-
-			var yScale = d3.scale.linear()
-						   .domain([0, d3.max(sampleData, function(d) { return d.value;})])
-						   .range([0,height]);
-
-			var canvas = d3.select("body")
-						.append("svg")
-						.attr("width", width)
-						.attr("height", height);
-			
-			canvas.selectAll("rect")
-				  .data(sampleData, key)
-				  .enter()
-				  .append("rect")
-				  .attr({
+    <script type="text/javascript">
+        var sampleData = [{name: r1, flag: 4, pos: 0, mapq: 30, seq: "GCCTAAGCTAA", qual: SA:Z:ref,29,-,6H5M,17,0;}
+                          {name: r2, flag: 2, pos: 30, mapq: 10, seq: "GCCTAGACGATA", qual: [057 044 043 044 053 083 054 077 090 058 114 101]}]
+        var margin = {top: 20, bottom: 30, left: 30, right: 30};
+        var height = 1000 - margin.bottom - margin.top;
+        var width = 1000 - margin.left - margin.right;
+        var canvas = d3.select("body")
+                       .append("svg")
+                       .attr({
+                       	    "height": height,
+                       	    "width": width
+                       });
+        var getPos = function(d) {
+        	return d.pos; 
+        }
+        var getLength = function(d) {
+        	sequence = d.seq;
+        	return sequence.length;
+        }
+        var xScale = d3.scale.linear()
+                             .domain([0, d3.max(sampleData, function(d {return d.pos;})])
+                             .range([0, width]) // Need to replace with length of sequence. 
+        var yScale = d3.scale.ordinal()
+                       .domain(d3.range(sampleData.length))
+                       .range([0, height], 0.05)
+        canvas.selectAll("read")
+              .data(sampleData, getPos)
+              .enter()
+              .append("read")
+              .attr({
+              	x: function(d) {
+              		return getPos(d);
+              	},
+              	y: function(d,i) {
+              		return yScale(i);
+                
+              	}
+              })
 				  	    x: function(d,i) {
 				  			return xScale(i); // i is same as the domain index in xScale.
 				  		},
@@ -83,121 +59,32 @@
 				  		fill: function(d) {
 				  			return "rgb(0,0, " + (d.value * 10) + ")";
 				  		}
-				  });
-		    canvas.selectAll("text")
-		    	  .data(sampleData, key)
-		    	  .enter()
-		    	  .append("text")
-		    	  .text(function(d) {
-		    	  	return d.value;
-		    	  })
-		    	  .attr({
-		    	  	x: function(d,i) {
-		    	  		return xScale(i) + xScale.rangeBand() / 2;
-		    	  	},
-		    	  	y: function(d) {
-		    	  		return height - yScale(d.value) + 14;
-		    	  	},
-		    	  	"font-family": "sans-serif",
-		    	  	"font-size": "11px",
-		    	  	fill: "white",
-		    	  	"text-anchor": "middle"
-		    	  });
-
-		  	d3.selectAll("button")
-		  		.on("click", function() {
-		  			var buttonID = d3.select(this).attr("id");
-		  			if (buttonID === "add") {
-				  		//Add one additional value to data set
-				  		var maxValue = 25;
-				  		var newEntry = Math.floor(Math.random() * maxValue);
-				  		var lastKeyValue = sampleData[sampleData.length - 1].key;
-				  		sampleData.push({key: lastKeyValue + 1, value: newEntry})
-			  		} else {
-			  			sampleData.shift();
-			  		}
-
-			  		xScale.domain(d3.range(sampleData.length));
-			  		yScale.domain([0, d3.max(sampleData, function(d) { return d.value;})]);
-			  		// Select the 1 updated value.
-		  			var bars = canvas.selectAll("rect")
-		                             .data(sampleData, key);
-		            // Draw updated value on SVG (enter)
-		            bars.enter()
-		                .append("rect")
-		                .attr({
-		                	x: width,
-		                	y: function(d) {
-		                		return height - yScale(d.value);
-		                	},
-		                	width: xScale.rangeBand(),
-		                	height: function(d) {
-		                		return yScale(d.value);
-		                	},
-		                	fill: function(d) {
-		                		return "rgb(0, 0, " + (d.value*10) + ")";
-		                	}
-		                });
-		            // Transition the bars into SVG (update)     
-		            bars.transition()
-		                .duration(500)
-		                .attr({
-		                	x: function(d,i) {
-		                	return xScale(i);
-		                    },
-		                    y: function(d) {
-		                    	return height - yScale(d.value);
-		                    },
-		                    width: xScale.rangeBand(),
-		                    height: function(d) {
-		                    	return yScale(d.value);
-		                    }
-		               });
-		            // Remove any bars in SVG that are no longer in dataset. 
-		            bars.exit()
-		            	.transition()
-		            	.duration(500)
-		            	.attr("x", -xScale.rangeBand())
-		            	.remove();
-
-		            var bar_label = canvas.selectAll("text")
-		            					  .data(sampleData, key);
-		            bar_label.enter()
-		            	.append("text")
-		            	.text(function(d) {
-		            		return d.value;
-		            	})
-		            	.attr({
-		            		x: width,
-		            		y: function(d) {
-		            			return height - yScale(d.value) + 14;
-		            		},
-		            		"font-family": "sans-serif",
-		    	  			"font-size": "11px",
-		    	  			fill: "white",
-		    	  			"text-anchor": "middle"
-		            	});
-		            bar_label.transition()
-		            		 .duration(500)
-		            		 .attr({
-		            		 	x: function(d,i) {
-		            		 		return xScale(i) + xScale.rangeBand() / 2;
-		            		 	},
-		            		 	y: function(d) {
-		            		 		return height - yScale(d.value) + 14;
-		            		 	},
-		            		 	"font-family": "sans-serif",
-		    	  				"font-size": "11px",
-		    	  				fill: "white",
-		    	  				"text-anchor": "middle"
-		            		 });
-		            bar_label.exit()
-		                     .transition()
-		                     .duration(500)
-		                     .attr("x", -xScale.rangeBand())
-		                     .remove();
-		  		});
-		</script>
-
+    </script>
 	</body>
 </html>
+
+
+<!-- 		<button id="add">Add Random Element</button>
+		<button id="remove">Remove Element</button>
+		<div id="tooltip" class="hidden">
+	        <p><strong>Important Label Heading</strong></p>
+	        <p><span id="value">100</span>%</p>
+        </div>
+		<script type="text/javascript">
+		</script> -->
+
+var read1 = {name: r1,
+             flag: 4,
+             pos: 0
+             mapq: 30
+             seq: GCCTAAGCTAA
+             qual: SA:Z:ref,29,-,6H5M,17,0;}
+var read2 = {name: r1, }
+var sampleData = [read1, read2, read3];
+
+r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *
+r002 0 ref 9 30 3S6M1P1I4M * 0 0 AAAAGATAAGGATA *
+r003 0 ref 9 30 5S6M * 0 0 GCCTAAGCTAA * SA:Z:ref,29,-,6H5M,17,0;
+r004 0 ref 16 30 6M14N5M * 0 0 ATAGCTTCAGC *
+r003 2064 ref 29 17 6H5M * 0 0 TAGGC * SA:Z:ref,9,+,5S6M,30,1;
+r001 147 ref 37 30 9M = 7 -39 CAGCGGCAT * NM:i:1

@@ -22,8 +22,8 @@
 			
 			canvas.selectAll("rect")
 				  .data(sampleData)
-				  .enter()
-				  .append("rect")
+				  .enter() // select for rect objects taht currently don't exist.
+				  .append("rect") // create the rectangle objects.
 				  .attr({
 				  	    x: function(d,i) {
 				  			return xScale(i); // i is same as the domain index in xScale.

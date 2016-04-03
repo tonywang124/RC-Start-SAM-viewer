@@ -1,4 +1,3 @@
-/* Requires buttons with ids "add" and "remove" in the HTML */
 
 			var sampleData = [ { key: 0, value: 5 },
                 { key: 1, value: 10 },
@@ -21,7 +20,7 @@
                 { key: 18, value: 23 },
                 { key: 19, value: 25 } ];
 			//Retrieve key of Array entry
-			var key = function(d) {
+			var getKey = function(d) {
 				return d.key;
 			};
 			var width = 600;
@@ -43,7 +42,7 @@
 						.attr("height", height);
 			
 			canvas.selectAll("rect")
-				  .data(sampleData, key)
+				  .data(sampleData, getKey)
 				  .enter()
 				  .append("rect")
 				  .attr({
@@ -62,7 +61,7 @@
 				  		}
 				  });
 		    canvas.selectAll("text")
-		    	  .data(sampleData, key)
+		    	  .data(sampleData, getKey)
 		    	  .enter()
 		    	  .append("text")
 		    	  .text(function(d) {
@@ -98,7 +97,7 @@
 			  		yScale.domain([0, d3.max(sampleData, function(d) { return d.value;})]);
 			  		// Select the 1 updated value.
 		  			var bars = canvas.selectAll("rect")
-		                             .data(sampleData, key);
+		                             .data(sampleData, getKey);
 		            // Draw updated value on SVG (enter)
 		            bars.enter()
 		                .append("rect")
@@ -138,7 +137,7 @@
 		            	.remove();
 
 		            var bar_label = canvas.selectAll("text")
-		            					  .data(sampleData, key);
+		            					  .data(sampleData, getKey);
 		            bar_label.enter()
 		            	.append("text")
 		            	.text(function(d) {
