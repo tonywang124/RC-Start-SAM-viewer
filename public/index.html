@@ -9,9 +9,24 @@
 	</head>
 	<body>
     <script type="text/javascript">
-        var sampleData = [{name: r1, flag: 4, pos: 0, mapq: 30, seq: "GCCTAAGCTAA", qual: SA:Z:ref,29,-,6H5M,17,0;}
-                          {name: r2, flag: 2, pos: 30, mapq: 10, seq: "GCCTAGACGATA", qual: [057 044 043 044 053 083 054 077 090 058 114 101]}]
+        // Sample data
+        var read1 = {name: "r1", flag: 4, pos: 15, mapq: 30, seq: "GCCTAAGCTAA"};
+        var read2 = {name: "r2", flag: 2, pos: 30, mapq: 10, seq: "GCCTAGACGATA"};
+        var read3 = {name: "r3", flag: 8, pos: 60, mapq: 45, seq: "GCCTAAGCTAAAGTCTAAAAA"};
+        var read4 = {name: "r4", flag: 4, pos: 100, mapq: 60, seq: "GCCTAAGCTAAGAGAAAATCAGA"};
+        var read5 = {name: "r5", flag: 4, pos: 120, mapq: 90, seq: "GCCTAA"};
+        var sampleData = [read1 , read2, read3, read4, read5];
+        // Getters for working with read data structure.
+        var getPos = function(d) {
+          return d.pos; 
+        }
+        var getLength = function(d) {
+          sequence = d.seq;
+          return sequence.length;
+        }
+
         var margin = {top: 20, bottom: 30, left: 30, right: 30};
+        var barPadding = 1;
         var height = 1000 - margin.bottom - margin.top;
         var width = 1000 - margin.left - margin.right;
         var canvas = d3.select("body")
@@ -20,45 +35,57 @@
                        	    "height": height,
                        	    "width": width
                        });
-        var getPos = function(d) {
-        	return d.pos; 
-        }
-        var getLength = function(d) {
-        	sequence = d.seq;
-        	return sequence.length;
-        }
+         
         var xScale = d3.scale.linear()
-                             .domain([0, d3.max(sampleData, function(d {return d.pos;})])
-                             .range([0, width]) // Need to replace with length of sequence. 
+                             .domain([0, d3.max(sampleData, function(d) {return d.pos;})])
+                             .range([0, width - d3.max(sampleData, function(d) {return d.seq.length;})]); // xPos of read on canvas.
         var yScale = d3.scale.ordinal()
                        .domain(d3.range(sampleData.length))
-                       .range([0, height], 0.05)
-        canvas.selectAll("read")
+                       .rangeRoundBands([0, height], 0.05);
+
+        var xAxis = d3.svg.axis()
+                      .scale(xScale)
+                      .orient("bottom")
+                      .tickSize(-height, 0)
+                      .tickPadding(6);
+
+        canvas.selectAll("rect")
               .data(sampleData, getPos)
               .enter()
-              .append("read")
+              .append("rect")
               .attr({
               	x: function(d) {
-              		return getPos(d);
+              		return xScale(getPos(d));
               	},
               	y: function(d,i) {
-              		return yScale(i);
-                
-              	}
-              })
-				  	    x: function(d,i) {
-				  			return xScale(i); // i is same as the domain index in xScale.
-				  		},
-				  		y: function(d) {
-				  			return height - yScale(d.value);
-				  		},
-				  		width: xScale.rangeBand(),
-				  		height: function(d) {
-				  			return yScale(d.value);
-				  		},
-				  		fill: function(d) {
-				  			return "rgb(0,0, " + (d.value * 10) + ")";
-				  		}
+                  console.log("The value of i is: " + i);
+                  console.log("the value of yScale(i) is: " + yScale(i));
+                  return yScale(i);
+              	},
+                height: height / sampleData.length - barPadding,
+                width: function(d, i) {
+                  return getPos(d);
+                },
+                fill: function(d) {
+                  return "rgb(0,0, " + (d.mapq) + ")";
+                }
+        //       })
+				  	 //    x: function(d,i) {
+				  		// 	return xScale(i); // i is same as the domain index in xScale.
+				  		// },
+				  		// y: function(d) {
+				  		// 	return height - yScale(d.value);
+				  		// },
+				  		// width: xScale.rangeBand(),
+				  		// height: function(d) {
+				  		// 	return yScale(d.value);
+				  		// },
+				  		// fill: function(d) {
+				  		// 	return "rgb(0,0, " + (d.value * 10) + ")";
+				  		});
+
+              // read1 qual: , qual: [083 065 058 090 058 114 101 102 044 050 057 044 045 044 054 072 053 077 044 049 055 044 048]
+              // read2 qual is --> qual: [057 044 043 044 053 083 054 077 090 058 114 101]
     </script>
 	</body>
 </html>
@@ -72,19 +99,3 @@
         </div>
 		<script type="text/javascript">
 		</script> -->
-
-var read1 = {name: r1,
-             flag: 4,
-             pos: 0
-             mapq: 30
-             seq: GCCTAAGCTAA
-             qual: SA:Z:ref,29,-,6H5M,17,0;}
-var read2 = {name: r1, }
-var sampleData = [read1, read2, read3];
-
-r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *
-r002 0 ref 9 30 3S6M1P1I4M * 0 0 AAAAGATAAGGATA *
-r003 0 ref 9 30 5S6M * 0 0 GCCTAAGCTAA * SA:Z:ref,29,-,6H5M,17,0;
-r004 0 ref 16 30 6M14N5M * 0 0 ATAGCTTCAGC *
-r003 2064 ref 29 17 6H5M * 0 0 TAGGC * SA:Z:ref,9,+,5S6M,30,1;
-r001 147 ref 37 30 9M = 7 -39 CAGCGGCAT * NM:i:1
