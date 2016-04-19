@@ -9,23 +9,24 @@
 	</head>
 	<body>
     <script type="text/javascript">
-        // Sample data
+        // Hard coded sample data 
         var read1 = {name: "r1", flag: 4, pos: 15, mapq: 30, seq: "GCCTAAGCTAA"};
         var read2 = {name: "r2", flag: 2, pos: 30, mapq: 10, seq: "GCCTAGACGATA"};
         var read3 = {name: "r3", flag: 8, pos: 60, mapq: 45, seq: "GCCTAAGCTAAAGTCTAAAAA"};
         var read4 = {name: "r4", flag: 4, pos: 100, mapq: 60, seq: "GCCTAAGCTAAGAGAAAATCAGA"};
         var read5 = {name: "r5", flag: 4, pos: 120, mapq: 90, seq: "GCCTAA"};
         var sampleData = [read1 , read2, read3, read4, read5];
+       
         // Getters for working with read data structure.
         var getPos = function(d) {
           return d.pos; 
         }
-
         var getLength = function(d) {
           sequence = d.seq;
           return sequence.length;
         }
-
+        
+        //Initial setup of SVG canvas.
         var margin = {top: 20, bottom: 30, left: 30, right: 30};
         var barPadding = 1;
         var height = 1000 - margin.top - margin.bottom;
@@ -38,22 +39,17 @@
                        })
                        .append("g")
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        // Need to fix the scales to reflect new canvas
+        
+        //Set up scales 
         var xScale = d3.scale.linear()
                              .domain([0, d3.max(sampleData, function(d) {return getPos(d);})])
                              .range([0, width - d3.max(sampleData, function(d) {return getLength(d);})]); 
-        
-        var xScaleWidth = d3.scale.linear()
-                                  .domain([0, d3.max(sampleData, function(d) {return getLength(d);})])
-                                  .range([0, width - d3.max(sampleData, function(d) {return getLength(d);})]);
-
-        var xScaleCopy = xScale.copy();
-
+      
         var yScale = d3.scale.ordinal()
                        .domain(d3.range(sampleData.length))
                        .rangeRoundBands([0, height], 0.05);
-
+        
+        //Set up axis. Only have xAxis representing position of reads.
         var xAxis = d3.svg.axis()
                       .scale(xScale)
                       .orient("bottom")
@@ -61,7 +57,7 @@
                       .ticks(7);
                       // .tickPadding(6);
         
-        var panExtent = {x: [0, width]}
+        //Bind data to rects and initialize view. 
         canvas.selectAll("rect.reads")
               .data(sampleData)
               .enter()
@@ -82,67 +78,44 @@
                 },
                 class: "reads"
                 });
-              
-
-              // read1 qual: , qual: [083 065 058 090 058 114 101 102 044 050 057 044 045 044 054 072 053 077 044 049 055 044 048]
-              // read2 qual is --> qual: [057 044 043 044 053 083 054 077 090 058 114 101]
+        
+        //Add axis to canvas       
         canvas.append("g")
               .attr("class", "axis")
               .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
               .call(xAxis);
         
+
         var zoom = d3.behavior.zoom()
                      .scaleExtent([0.1, 1000])
                      .x(xScale)
                      .on("zoom", zoomed);
-
+        
+        //callback function for zooming. 
         function zoomed() {
           canvas.select("g.axis").call(xAxis);
-          // zoom.translate(panLimit());
-          // canvas.selectAll("rect.reads").remove();
-          // var temp = canvas.selectAll("rect.reads").data(sampleData);
-                
-                // temp.enter()
-                canvas.selectAll("rect.reads")
-                // .append("rect")
-                .attr({
-                  x: function(d) {
-                    return xScale(getPos(d));
-                  },
-                  y: function(d, i) {
-                    return yScale(i);
-                  },
-                  height: height / sampleData.length - barPadding,
-                  width: function(d, i) {
-                    return getLength(d);
-                  }
-                });
-
-                // temp.exit()
-                // .remove();
+              canvas.selectAll("rect.reads")
+                    .attr({
+                      x: function(d) {
+                        return xScale(getPos(d));
+                      },
+                      y: function(d, i) {
+                        return yScale(i);
+                      },
+                      height: height / sampleData.length - barPadding,
+                      width: function(d, i) {
+                        return getLength(d);
+                      }
+                    });
         }
-
-        function panLimit() {
-          var divisor = {w: width / (xScale.domain()[1] - xScale.domain()[0]) * zoom.scale()};
-          var minX = -((xScale.domain()[0] - xScale.domain()[1]) * zoom.scale() + (panExtent.x[1]) - (panExtent.x[1]-(width/divisor.w)));
-          var maxX = -((xScale.domain[0] - xScale.domain[1]) + (panExtent.x[1]) - panExtent[0]) * divisor.w * zoom.scale();
-          var tx = xScale.domain()[0] < panExtent.x[0] ? minX : xScale.domain()[1] > panExtent.x[1] ? maxX : zoom.translate()[0]
-          return [tx,0];
-        }
-
+        //Added rectangle spanning entire SVG for zooming.
         canvas.append("rect")
               .attr("class", "pane")
               .attr("width", width)
               .attr("height", height)
               .call(zoom);
 
-        // d3.tsv("sampleData.tsv", function(error, data) {
-        //   if (error) throw error;
 
-        //   data.forEach(function(d) {
-        //     d.
-        //   })
-        // })
     </script>
 	</body>
 </html>
