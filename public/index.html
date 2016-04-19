@@ -20,6 +20,7 @@
         var getPos = function(d) {
           return d.pos; 
         }
+
         var getLength = function(d) {
           sequence = d.seq;
           return sequence.length;
@@ -27,18 +28,28 @@
 
         var margin = {top: 20, bottom: 30, left: 30, right: 30};
         var barPadding = 1;
-        var height = 1000 - margin.bottom - margin.top;
+        var height = 1000 - margin.top - margin.bottom;
         var width = 1000 - margin.left - margin.right;
         var canvas = d3.select("body")
                        .append("svg")
                        .attr({
-                       	    "height": height,
-                       	    "width": width
-                       });
-         
+                       	    "height": height + margin.top + margin.bottom,
+                       	    "width": width + margin.left + margin.right
+                       })
+                       .append("g")
+                       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Need to fix the scales to reflect new canvas
         var xScale = d3.scale.linear()
-                             .domain([0, d3.max(sampleData, function(d) {return d.pos;})])
-                             .range([0, width - d3.max(sampleData, function(d) {return d.seq.length;})]); // xPos of read on canvas.
+                             .domain([0, d3.max(sampleData, function(d) {return getPos(d);})])
+                             .range([0, width - d3.max(sampleData, function(d) {return getLength(d);})]); 
+        
+        var xScaleWidth = d3.scale.linear()
+                                  .domain([0, d3.max(sampleData, function(d) {return getLength(d);})])
+                                  .range([0, width - d3.max(sampleData, function(d) {return getLength(d);})]);
+
+        var xScaleCopy = xScale.copy();
+
         var yScale = d3.scale.ordinal()
                        .domain(d3.range(sampleData.length))
                        .rangeRoundBands([0, height], 0.05);
@@ -46,11 +57,13 @@
         var xAxis = d3.svg.axis()
                       .scale(xScale)
                       .orient("bottom")
-                      .tickSize(-height, 0)
-                      .tickPadding(6);
-
-        canvas.selectAll("rect")
-              .data(sampleData, getPos)
+                      // .tickSize(-height, 0)
+                      .ticks(7);
+                      // .tickPadding(6);
+        
+        var panExtent = {x: [0, width]}
+        canvas.selectAll("rect.reads")
+              .data(sampleData)
               .enter()
               .append("rect")
               .attr({
@@ -58,34 +71,78 @@
               		return xScale(getPos(d));
               	},
               	y: function(d,i) {
-                  console.log("The value of i is: " + i);
-                  console.log("the value of yScale(i) is: " + yScale(i));
                   return yScale(i);
               	},
                 height: height / sampleData.length - barPadding,
                 width: function(d, i) {
-                  return getPos(d);
+                  return getLength(d);
                 },
                 fill: function(d) {
                   return "rgb(0,0, " + (d.mapq) + ")";
-                }
-        //       })
-				  	 //    x: function(d,i) {
-				  		// 	return xScale(i); // i is same as the domain index in xScale.
-				  		// },
-				  		// y: function(d) {
-				  		// 	return height - yScale(d.value);
-				  		// },
-				  		// width: xScale.rangeBand(),
-				  		// height: function(d) {
-				  		// 	return yScale(d.value);
-				  		// },
-				  		// fill: function(d) {
-				  		// 	return "rgb(0,0, " + (d.value * 10) + ")";
-				  		});
+                },
+                class: "reads"
+                });
+              
 
               // read1 qual: , qual: [083 065 058 090 058 114 101 102 044 050 057 044 045 044 054 072 053 077 044 049 055 044 048]
               // read2 qual is --> qual: [057 044 043 044 053 083 054 077 090 058 114 101]
+        canvas.append("g")
+              .attr("class", "axis")
+              .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
+              .call(xAxis);
+        
+        var zoom = d3.behavior.zoom()
+                     .scaleExtent([0.1, 1000])
+                     .x(xScale)
+                     .on("zoom", zoomed);
+
+        function zoomed() {
+          canvas.select("g.axis").call(xAxis);
+          // zoom.translate(panLimit());
+          // canvas.selectAll("rect.reads").remove();
+          // var temp = canvas.selectAll("rect.reads").data(sampleData);
+                
+                // temp.enter()
+                canvas.selectAll("rect.reads")
+                // .append("rect")
+                .attr({
+                  x: function(d) {
+                    return xScale(getPos(d));
+                  },
+                  y: function(d, i) {
+                    return yScale(i);
+                  },
+                  height: height / sampleData.length - barPadding,
+                  width: function(d, i) {
+                    return getLength(d);
+                  }
+                });
+
+                // temp.exit()
+                // .remove();
+        }
+
+        function panLimit() {
+          var divisor = {w: width / (xScale.domain()[1] - xScale.domain()[0]) * zoom.scale()};
+          var minX = -((xScale.domain()[0] - xScale.domain()[1]) * zoom.scale() + (panExtent.x[1]) - (panExtent.x[1]-(width/divisor.w)));
+          var maxX = -((xScale.domain[0] - xScale.domain[1]) + (panExtent.x[1]) - panExtent[0]) * divisor.w * zoom.scale();
+          var tx = xScale.domain()[0] < panExtent.x[0] ? minX : xScale.domain()[1] > panExtent.x[1] ? maxX : zoom.translate()[0]
+          return [tx,0];
+        }
+
+        canvas.append("rect")
+              .attr("class", "pane")
+              .attr("width", width)
+              .attr("height", height)
+              .call(zoom);
+
+        // d3.tsv("sampleData.tsv", function(error, data) {
+        //   if (error) throw error;
+
+        //   data.forEach(function(d) {
+        //     d.
+        //   })
+        // })
     </script>
 	</body>
 </html>
