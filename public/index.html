@@ -16,7 +16,7 @@
         var read4 = {name: "r4", flag: 4, pos: 100, mapq: 60, seq: "GCCTAAGCTAAGAGAAAATCAGA"};
         var read5 = {name: "r5", flag: 4, pos: 120, mapq: 90, seq: "GCCTAA"};
         var sampleData = [read1 , read2, read3, read4, read5];
-       
+        
         // Getters for working with read data structure.
         var getPos = function(d) {
           return d.pos; 
@@ -26,6 +26,9 @@
           return sequence.length;
         }
         
+        var getExtent = function(d) {
+          return d.pos + d.seq.length;
+        }
         //Initial setup of SVG canvas.
         var margin = {top: 20, bottom: 30, left: 30, right: 30};
         var barPadding = 1;
@@ -42,8 +45,8 @@
         
         //Set up scales 
         var xScale = d3.scale.linear()
-                             .domain([0, d3.max(sampleData, function(d) {return getPos(d);})])
-                             .range([0, width - d3.max(sampleData, function(d) {return getLength(d);})]); 
+                             .domain([0, d3.max(sampleData, function(d) {return getExtent(d);})])
+                             .range([0, width]); 
       
         var yScale = d3.scale.ordinal()
                        .domain(d3.range(sampleData.length))
@@ -104,6 +107,7 @@
                       },
                       height: height / sampleData.length - barPadding,
                       width: function(d, i) {
+                        console.log(xScale(getLength(d)));
                         return xScale(getLength(d));
                       }
                     });
