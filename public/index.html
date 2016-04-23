@@ -25,21 +25,7 @@
           sequence = d.seq;
           return sequence.length;
         }
-        
-        //Initial setup of SVG canvas.
-        var margin = {top: 20, bottom: 30, left: 30, right: 30};
-        var barPadding = 1;
-        var height = 1000 - margin.top - margin.bottom;
-        var width = 1000 - margin.left - margin.right;
-        var canvas = d3.select("body")
-                       .append("svg")
-                       .attr({
-                       	    "height": height + margin.top + margin.bottom,
-                       	    "width": width + margin.left + margin.right
-                       })
-                       .append("g")
-                       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        
+                
         //Set up scales 
         var xScale = d3.scale.linear()
                              .domain([0, d3.max(sampleData, function(d) {return getPos(d);})])
@@ -57,27 +43,12 @@
                       .ticks(7);
                       // .tickPadding(6);
         
-        //Bind data to rects and initialize view. 
-        canvas.selectAll("rect.reads")
-              .data(sampleData)
-              .enter()
-              .append("rect")
-              .attr({
-              	x: function(d) {
-              		return xScale(getPos(d));
-              	},
-              	y: function(d,i) {
-                  return yScale(i);
-              	},
-                height: height / sampleData.length - barPadding,
-                width: function(d, i) {
-                  return getLength(d);
-                },
-                fill: function(d) {
-                  return "rgb(0,0, " + (d.mapq) + ")";
-                },
-                class: "reads"
-                });
+
+        //Call resuable chart function to initialize chart.
+        d3.select("body")
+          .datum(sampleData)
+          .call(generateChart);
+
         
         //Add axis to canvas       
         canvas.append("g")
@@ -92,22 +63,105 @@
                      .on("zoom", zoomed);
         
         //callback function for zooming. 
-        function zoomed() {
-          canvas.select("g.axis").call(xAxis);
-              canvas.selectAll("rect.reads")
-                    .attr({
-                      x: function(d) {
-                        return xScale(getPos(d));
-                      },
-                      y: function(d, i) {
-                        return yScale(i);
-                      },
-                      height: height / sampleData.length - barPadding,
-                      width: function(d, i) {
-                        return getLength(d);
-                      }
-                    });
+        // function zoomed() {
+        //   canvas.select("g.axis").call(xAxis);
+        //   canvas.selectAll("rect.reads")
+        //         .attr({
+        //           x: function(d) {
+        //             return xScale(getPos(d));
+        //           },
+        //           y: function(d, i) {
+        //             return yScale(i);
+        //           },
+        //           height: height / sampleData.length - barPadding,
+        //           width: function(d, i) {
+        //             return xScale(getLength(d));
+        //           }
+        //         });
+        // }
+
+
+
+        function generateChart() {
+            var width = 100;
+            var height = 100;
+            var x = 100;
+            var y = 100;
+            var barPadding =1;
+
+        //Initial setup of SVG canvas.
+        var margin = {top: 20, bottom: 30, left: 30, right: 30};
+        var barPadding = 1;
+        var height = 1000 - margin.top - margin.bottom;
+        var width = 1000 - margin.left - margin.right;
+        var canvas = d3.select("body")
+                       .append("svg")
+                       .attr({
+                            "height": height + margin.top + margin.bottom,
+                            "width": width + margin.left + margin.right
+                       })
+                       .append("g")
+                       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        //Bind data to rects and initialize view. 
+        canvas.selectAll("rect.reads")
+              .data(sampleData)
+              .enter()
+              .append("rect")
+              .attr({
+                x: function(d) {
+                  return xScale(getPos(d));
+                },
+                y: function(d,i) {
+                  return yScale(i);
+                },
+                height: height / sampleData.length - barPadding,
+                width: function(d, i) {
+                  return xScale(getLength(d));
+                },
+                fill: function(d) {
+                  return "rgb(0,0, " + (d.mapq) + ")";
+                },
+                class: "reads"
+                });
+
+
+
+            function chart(selection){
+                selection.each(function (data) {
+                  var fill = "rgb(0,0,0)";
+                  var maxValue = d3.max(data);
+                })
+
+                d3.select(this).append("svg")
+                               .attr("height", height)
+                               .attr("width", width)
+                               .selectAll('rect')
+                               .data(sampleData)
+                               .enter()
+                               .append("rect")
+                               .attr(x, function(d) { return xScale(getPos(d))})
+                               .attr(y, function(d,i) { return yScale(i)})
+                               .attr(width, function(d,i) { return xScale(getLength(d))})
+                               .attr(height, height / sampleData.length - barPadding);
+            }
+            
+
+            return chart;
         }
+        
+        function zoomed() {
+          var t = zoom.translate();
+          tx = t[0];
+          ty = t[1];
+          
+          tx = Math.min(tx, 0);
+          tx = Math.max(tx, width - d3.max(sampleData, function(d) {return getLength(d);}));
+          zoom.translate([tx, ty]);
+
+          canvas.select("rect.reads").attr('d', bars);
+        }
+
         //Added rectangle spanning entire SVG for zooming.
         canvas.append("rect")
               .attr("class", "pane")
