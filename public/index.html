@@ -71,7 +71,7 @@
               	},
                 height: height / sampleData.length - barPadding,
                 width: function(d, i) {
-                  return getLength(d);
+                  return xScale(getLength(d));
                 },
                 fill: function(d) {
                   return "rgb(0,0, " + (d.mapq) + ")";
@@ -104,7 +104,7 @@
                       },
                       height: height / sampleData.length - barPadding,
                       width: function(d, i) {
-                        return getLength(d);
+                        return xScale(getLength(d));
                       }
                     });
         }
