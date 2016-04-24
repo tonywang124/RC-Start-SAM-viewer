@@ -44,6 +44,10 @@
                        .append("g")
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+				d3.tsv('sampleData.tsv', function(data){
+					console.log(data)
+				})
+
         //Set up scales
         var xScale = d3.scale.linear()
                              .domain([0, d3.max(sampleData, function(d) {return getExtent(d);})])
@@ -75,7 +79,7 @@
               	},
                 height: height / sampleData.length - barPadding,
                 width: function(d, i) {
-                  return xScale(getLength(d));
+									return xScale(getExtent(d)) - xScale(getPos(d));
                 },
                 fill: function(d) {
                   return "rgb(0,0, " + (d.mapq) + ")";
@@ -108,8 +112,7 @@
                       },
                       height: height / sampleData.length - barPadding,
                       width: function(d, i) {
-												// return xScale(getLength(d));
-                        return xScale(getExtent(d)) - xScale(getLength(d));
+                        return xScale(getExtent(d)) - xScale(getPos(d));
                       }
                     });
         }
