@@ -17,29 +17,14 @@
         var read5 = {name: "r5", flag: 4, pos: 120, mapq: 90, seq: "GCCTAA"};
         var sampleData = [read1 , read2, read3, read4, read5];
         
-        // Getters for working with read data structure.
-        // var getPos = function(d) {
-        //   return d.pos;
-        // }
-        // var getLength = function(d) {
-        //   sequence = d.seq;
-        //   return sequence.length;
-        // }
-
-        // var getExtent = function(d) {
-        //   return d.pos + d.seq.length;
-        // }
-
         //Getters for TSV version
         var getPos = function(d) {
             //Pos stored at index 3 of array
             return Number(d[3]);
         }
-
         var getLength = function(d) {
             return Number(d[9].length);
         }
-
         var getExtent = function(d) {
           return getPos(d) + getLength(d);
         }
@@ -59,6 +44,7 @@
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         var globalRows;
+        //Callback for parsing data file
         d3.text("sampleData.tsv", function(error, text) {
             if (error) throw error;
             
@@ -70,13 +56,15 @@
             function comparePos(a, b) {
               return getPos(a) - getPos(b);
             }
-
             globalRows.sort(comparePos);
-
+            //Update domain after file has been read
             xScale.domain([0, d3.max(globalRows, function(d) {return getExtent(d);})]);
             yScale.domain(d3.range(globalRows.length));
-
+            
+            //Update axis
             canvas.select("g.axis").call(xAxis);
+            
+            //Update zoom x
             zoom.x(xScale);
 
             //Bind data to rects and initialize view.
@@ -101,14 +89,10 @@
                     class: "reads"
                     });
           });
-				d3.tsv('sampleData.tsv', function(data){
-					console.log(data)
-				})
 
         //Set up scales
         var xScale = d3.scale.linear()
                        .range([0, width]);
-
         var yScale = d3.scale.ordinal()
                        .rangeRoundBands([0, height], 0.05);
 
@@ -118,36 +102,12 @@
                       .orient("bottom")
                       .ticks(7);
 
-                      // .tickPadding(6);
-
-        //Bind data to rects and initialize view.
-        canvas.selectAll("rect.reads")
-              .data(sampleData)
-              .enter()
-              .append("rect")
-              .attr({
-              	x: function(d) {
-              		return xScale(getPos(d));
-              	},
-              	y: function(d,i) {
-                  return yScale(i);
-              	},
-                height: height / sampleData.length - barPadding,
-                width: function(d, i) {
-									return xScale(getExtent(d)) - xScale(getPos(d));
-                },
-                fill: function(d) {
-                  return "rgb(0,0, " + (d.mapq) + ")";
-                },
-                class: "reads"
-                });
-
         //Add axis to canvas
         canvas.append("g")
               .attr("class", "axis")
               .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
               .call(xAxis);
-
+        
         var zoom = d3.behavior.zoom()
                      .scaleExtent([0.1, 10])
                      .on("zoom", zoomed);
