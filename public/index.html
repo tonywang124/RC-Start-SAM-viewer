@@ -16,18 +16,32 @@
         var read4 = {name: "r4", flag: 4, pos: 100, mapq: 60, seq: "GCCTAAGCTAAGAGAAAATCAGA"};
         var read5 = {name: "r5", flag: 4, pos: 120, mapq: 90, seq: "GCCTAA"};
         var sampleData = [read1 , read2, read3, read4, read5];
-
+        
         // Getters for working with read data structure.
+        // var getPos = function(d) {
+        //   return d.pos;
+        // }
+        // var getLength = function(d) {
+        //   sequence = d.seq;
+        //   return sequence.length;
+        // }
+
+        // var getExtent = function(d) {
+        //   return d.pos + d.seq.length;
+        // }
+
+        //Getters for TSV version
         var getPos = function(d) {
-          return d.pos;
+            //Pos stored at index 3 of array
+            return Number(d[3]);
         }
+
         var getLength = function(d) {
-          sequence = d.seq;
-          return sequence.length;
+            return Number(d[9].length);
         }
 
         var getExtent = function(d) {
-          return d.pos + d.seq.length;
+          return getPos(d) + getLength(d);
         }
 
         //Initial setup of SVG canvas.
@@ -44,44 +58,63 @@
                        .append("g")
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        var globalRows;
+
+        d3.text("sampleData.tsv", function(error, text) {
+            if (error) throw error;
+            
+            globalRows = d3.tsv.parseRows(text, function(row) {
+                return row
+            });
+
+            //sort function with min value at front.
+            function comparePos(a, b) {
+              return getPos(a) - getPos(b);
+            }
+
+            globalRows.sort(comparePos);
+
+            xScale.domain([0, d3.max(globalRows, function(d) {return getExtent(d);})]);
+            yScale.domain(d3.range(globalRows.length));
+
+            canvas.select("g.axis").call(xAxis);
+            zoom.x(xScale);
+
+            //Bind data to rects and initialize view.
+            canvas.selectAll("rect.reads")
+                  .data(globalRows)
+                  .enter()
+                  .append("rect")
+                  .attr({
+                    x: function(d) {
+                      return xScale(getPos(d));
+                    },
+                    y: function(d,i) {
+                      return yScale(i);
+                    },
+                    height: height / globalRows.length - barPadding,
+                    width: function(d, i) {
+                      return xScale(getExtent(d)) - xScale(getPos(d));
+                    },
+                    fill: function(d) {
+                      return "rgb(0,0, " + (d[4]) + ")";
+                    },
+                    class: "reads"
+                    });
+          });
+
         //Set up scales
         var xScale = d3.scale.linear()
-                             .domain([0, d3.max(sampleData, function(d) {return getExtent(d);})])
-                             .range([0, width]);
+                       .range([0, width]);
 
         var yScale = d3.scale.ordinal()
-                       .domain(d3.range(sampleData.length))
                        .rangeRoundBands([0, height], 0.05);
 
         //Set up axis. Only have xAxis representing position of reads.
         var xAxis = d3.svg.axis()
                       .scale(xScale)
                       .orient("bottom")
-                      // .tickSize(-height, 0)
                       .ticks(7);
-                      // .tickPadding(6);
-
-        //Bind data to rects and initialize view.
-        canvas.selectAll("rect.reads")
-              .data(sampleData)
-              .enter()
-              .append("rect")
-              .attr({
-              	x: function(d) {
-              		return xScale(getPos(d));
-              	},
-              	y: function(d,i) {
-                  return yScale(i);
-              	},
-                height: height / sampleData.length - barPadding,
-                width: function(d, i) {
-                  return xScale(getLength(d));
-                },
-                fill: function(d) {
-                  return "rgb(0,0, " + (d.mapq) + ")";
-                },
-                class: "reads"
-                });
 
         //Add axis to canvas
         canvas.append("g")
@@ -89,15 +122,13 @@
               .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
               .call(xAxis);
 
-
         var zoom = d3.behavior.zoom()
                      .scaleExtent([0.1, 10])
-                     .x(xScale)
                      .on("zoom", zoomed);
 
         //callback function for zooming.
         function zoomed() {
-          canvas.select("g.axis").call(xAxis);
+              canvas.select("g.axis").call(xAxis);
               canvas.selectAll("rect.reads")
                     .attr({
                       x: function(d) {
@@ -106,21 +137,20 @@
                       y: function(d, i) {
                         return yScale(i);
                       },
-                      height: height / sampleData.length - barPadding,
+                      height: height / globalRows.length - barPadding,
                       width: function(d, i) {
-												// return xScale(getLength(d));
-                        return xScale(getExtent(d)) - xScale(getLength(d));
+                        return xScale(getExtent(d)) - xScale(getPos(d));
                       }
                     });
         }
+
         //Added rectangle spanning entire SVG for zooming.
         canvas.append("rect")
               .attr("class", "pane")
               .attr("width", width)
               .attr("height", height)
               .call(zoom);
-
-
+        
     </script>
 	</body>
 </html>
