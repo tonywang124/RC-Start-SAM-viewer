@@ -59,7 +59,6 @@
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         var globalRows;
-
         d3.text("sampleData.tsv", function(error, text) {
             if (error) throw error;
             
@@ -102,6 +101,9 @@
                     class: "reads"
                     });
           });
+				d3.tsv('sampleData.tsv', function(data){
+					console.log(data)
+				})
 
         //Set up scales
         var xScale = d3.scale.linear()
@@ -115,6 +117,30 @@
                       .scale(xScale)
                       .orient("bottom")
                       .ticks(7);
+
+                      // .tickPadding(6);
+
+        //Bind data to rects and initialize view.
+        canvas.selectAll("rect.reads")
+              .data(sampleData)
+              .enter()
+              .append("rect")
+              .attr({
+              	x: function(d) {
+              		return xScale(getPos(d));
+              	},
+              	y: function(d,i) {
+                  return yScale(i);
+              	},
+                height: height / sampleData.length - barPadding,
+                width: function(d, i) {
+									return xScale(getExtent(d)) - xScale(getPos(d));
+                },
+                fill: function(d) {
+                  return "rgb(0,0, " + (d.mapq) + ")";
+                },
+                class: "reads"
+                });
 
         //Add axis to canvas
         canvas.append("g")
