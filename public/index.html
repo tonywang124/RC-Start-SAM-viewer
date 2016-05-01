@@ -8,6 +8,9 @@
 		<link rel="stylesheet" type="text/css" href="styles.css">
 	</head>
 	<body>
+		<form>
+			<input type="file" onchange="onFileUpload(this.files)"/>
+		</form>
     <div id="tooltip" class="hidden">
       <p><Strong>Pos: </strong><p>
       <p><span id="pos">error</p>
@@ -16,7 +19,39 @@
       <p><Strong>CIGAR: </strong><p>
       <p><span id="cigar">No data</p>
     <script type="text/javascript">
-        
+
+				var onFileUpload = function(files) {
+					var self = this;
+					var reader = new FileReader();
+					var xhr = new XMLHttpRequest();
+
+				  this.xhr = xhr;
+
+					// Progress
+				  this.xhr.upload.addEventListener("progress", function(e) {
+				        if (e.lengthComputable) {
+									console.log(e.loaded, e.total);
+				          // var percentage = Math.round((e.loaded * 100) / e.total);
+				          // self.ctrl.update(percentage);
+				        }
+				      }, false);
+
+					// Load
+				  xhr.upload.addEventListener("load", function(e){
+						console.log('DONE LOADING', e)
+				  }, false);
+
+					xhr.open("POST", "http://localhost:8000/data");
+				  // xhr.overrideMimeType('text/plain; charset=x-user-defined-binary');
+				  //
+				  reader.onload = function(evt) {
+				    xhr.send(evt.target.result);
+				  };
+
+				  reader.readAsBinaryString(file);
+				}
+
+
         //Getters for TSV version
         var getPos = function(d) {
             //Pos stored at index 3 of array
@@ -30,7 +65,7 @@
         }
         /*
           Calculate max reads per column.
-          Returns the largest difference between 
+          Returns the largest difference between
         */
         var maxReadsPerColumn = function(d) {
             var right = 1;
@@ -67,7 +102,7 @@
         //Callback for parsing data file
         d3.text("sampleData.tsv", function(error, text) {
             if (error) throw error;
-            
+
             globalRows = d3.tsv.parseRows(text, function(row) {
                 return row
             });
@@ -77,20 +112,20 @@
               return getPos(a) - getPos(b);
             }
             globalRows.sort(comparePos);
-            
+
             // Determine max number of reads per column
             if (maxReadsPerColumn(globalRows) > maxReads) {
               maxReads = maxReadsPerColumn(globalRows);
             }
-            
+
             //Update domain after file has been read
             xScale.domain([0, d3.max(globalRows, function(d) {return getExtent(d);})]);
             yScale.domain(d3.range(maxReads));
             colourScale.domain([0, d3.max(globalRows, function(d) {return Number(d[4])})]);
-            
+
             //Update axis
             canvas.select("g.axis").call(xAxis);
-            
+
             //Update zoom x
             zoom.x(xScale);
 
@@ -137,7 +172,7 @@
               .attr("class", "axis")
               .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
               .call(xAxis);
-        
+
         var zoom = d3.behavior.zoom()
                      .scaleExtent([0.1, 10])
                      .on("zoom", zoomed);
@@ -194,7 +229,7 @@
               .attr("width", width)
               .attr("height", height)
               .call(zoom);
-        
+
     </script>
 	</body>
 </html>
