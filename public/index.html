@@ -8,6 +8,13 @@
 		<link rel="stylesheet" type="text/css" href="styles.css">
 	</head>
 	<body>
+    <div id="tooltip" class="hidden">
+      <p><Strong>Pos: </strong><p>
+      <p><span id="pos">error</p>
+      <p><Strong>Seq: </strong><p>
+      <p><span id="seq">error</p>
+      <p><Strong>CIGAR: </strong><p>
+      <p><span id="cigar">No data</p>
     <script type="text/javascript">
         
         //Getters for TSV version
@@ -74,22 +81,11 @@
             if (maxReadsPerColumn(globalRows) > maxReads) {
               maxReads = maxReadsPerColumn(globalRows);
             }
-            console.log("maxReads is: " + maxReads);
-            var minPos = d3.min(globalRows, function(d) {return getPos(d)})
-            console.log("min pos is: " + minPos);
-            var allMin = function(data) {
-                var mins = new Array(globalRows.length);
-                for (i = 0; i<data.length;i++) {
-                  if (getPos(data[i]) == 0) {
-                    mins[i] = i;
-                  }
-                }
-                return mins;
-            };
-            console.log("Array pos of minPos are: " + allMin(globalRows));
+            
             //Update domain after file has been read
             xScale.domain([0, d3.max(globalRows, function(d) {return getExtent(d);})]);
             yScale.domain(d3.range(maxReads));
+            colourScale.domain([0, d3.max(globalRows, function(d) {return Number(d[4])})]);
             
             //Update axis
             canvas.select("g.axis").call(xAxis);
@@ -114,10 +110,12 @@
                       return xScale(getExtent(d)) - xScale(getPos(d));
                     },
                     fill: function(d) {
-                      return "rgb(0,0, " + (d[4]*10) + ")";
+                      return "rgb(0,0," + (colourScale(d[4])) + ")";
                     },
                     class: "reads"
-                    });
+                    })
+                  .on('click', tipShow)
+                  .on('mouseout', tipHide);
           });
 
         //Set up scales
@@ -125,6 +123,8 @@
                        .range([0, width]);
         var yScale = d3.scale.ordinal()
                        .rangeRoundBands([0, height], 0.05);
+        var colourScale = d3.scale.linear()
+                            .range([0, 255]);
 
         //Set up axis. Only have xAxis representing position of reads.
         var xAxis = d3.svg.axis()
@@ -158,6 +158,27 @@
                         return xScale(getExtent(d)) - xScale(getPos(d));
                       }
                     });
+        }
+
+        var tipShow = function(d) {
+            var xPos = parseFloat(d3.select(this).attr("x"));
+            var yPos = parseFloat(d3.select(this).attr("y"));
+            d3.select("#tooltip")
+              .style("left", xPos + "px")
+              .style("top", yPos + "px")
+              .select("#pos")
+              .text(getPos(d));
+            d3.select("#tooltip")
+              .select("#seq")
+              .text(d[9]);
+            d3.select("#tooltip")
+              .select("#cigar")
+              .text(d[5]);
+            d3.select("#tooltip").classed("hidden", false);
+        }
+
+        var tipHide = function() {
+          d3.select("#tooltip").classed("hidden", true);
         }
 
         //Added rectangle spanning entire SVG for zooming.

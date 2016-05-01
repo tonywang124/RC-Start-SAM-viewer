@@ -23,14 +23,14 @@
 			  pointer-events: all;
 			}
 			/* CSS method of programming hovering colour change.*/
-/*			rect:hover {
+			rect.reads:hover {
 				-moz-transition: all 0.3s;
         		-o-transition: all 0.3s;
         		-webkit-transition: all 0.3s;
         		transition: all 0.3s;
 				fill: orange;
 			}
-*/			/*#tooltip {
+			#tooltip {
 		        position: absolute;
 		        width: 200px;
 		        height: auto;
@@ -54,4 +54,12 @@
 			        font-family: sans-serif;
 			        font-size: 16px;
 			        line-height: 20px;
-			}*/
+			}
+
+			#seq {
+				word-wrap: break-word;
+			}
+
+			#cigar {
+				word-wrap: break-word;
+			}
