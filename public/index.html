@@ -62,6 +62,7 @@
                        .append("g")
                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
         var maxReads = 10;
+        var unclicked = true;
         var globalRows;
         //Callback for parsing data file
         d3.text("sampleData.tsv", function(error, text) {
@@ -115,7 +116,6 @@
                     class: "reads"
                     })
                   .on('click', tipShow)
-                  .on('mouseout', tipHide);
           });
 
         //Set up scales
@@ -161,6 +161,7 @@
         }
 
         var tipShow = function(d) {
+          if (unclicked) {
             var xPos = parseFloat(d3.select(this).attr("x"));
             var yPos = parseFloat(d3.select(this).attr("y"));
             d3.select("#tooltip")
@@ -175,11 +176,17 @@
               .select("#cigar")
               .text(d[5]);
             d3.select("#tooltip").classed("hidden", false);
+            unclicked = false;
+          }
+          else {
+            d3.select("#tooltip").classed("hidden", true);
+            unclicked = true;
+          }
         }
 
-        var tipHide = function() {
-          d3.select("#tooltip").classed("hidden", true);
-        }
+        // var tipHide = function() {
+        //   d3.select("#tooltip").classed("hidden", true);
+        // }
 
         //Added rectangle spanning entire SVG for zooming.
         canvas.append("rect")
